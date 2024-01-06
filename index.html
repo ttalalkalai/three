@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Styled Textarea</title>
+    <style>
+        body {
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            background-color: #333; /* Dark background color */
+            color: #bfefff; /* Pale blue text color */
+            text-align: center;
+            margin: 0;
+            padding: 50px 0; /* Add padding to center the textarea at the top */
+            position: relative;
+        }
+
+        textarea {
+            width: 40%; /* Half of the original width */
+            height: 200px; /* Twice the original height */
+            padding: 15px; /* Increased padding */
+            box-sizing: border-box;
+            margin: 20px auto; /* Center the textarea horizontally */
+            border: 1px solid #bfefff; /* Pale blue border color */
+            border-radius: 10px; /* Increased border-radius for rounder corners */
+            background-color: #333; /* Dark textarea background color */
+            color: #bfefff; /* Pale blue text color */
+            font-size: 18px; /* Increased font size */
+            transition: background-color 0.5s, border-color 0.5s, color 0.5s;
+        }
+
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 50%; /* Align the left side with the textarea */
+            transform: translateX(-50%); /* Center the bar */
+            width: 20%; 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #333;
+            padding: 10px;
+        }
+
+        .countdown {
+            color: #5d6163;
+            font-size: 18px; /* Increased font size */
+            transition: background-color 0.5s, border-color 0.5s, color 0.5s;
+        }
+
+        .button {
+            background-color: #306d40;
+            border-radius: 8px;
+            border: 1px solid #18ab29;
+            display: inline-block;
+            cursor: pointer;
+            color: #ffffff;
+            font-size: 15px;
+            padding: 10px 20px;
+            text-decoration: none;
+            text-shadow: 0px 1px 0px #2f6627;
+        }
+    </style>
+</head>
+
+<body>
+    <textarea id="textArea"></textarea>
+    <div class="bottom-bar">
+        <div class="countdown" id="countdown">3:00</div>
+        <button class="button" id="peep">start</button>
+    </div>
+
+    <script>
+        //Globals 
+        const textarea = document.getElementById("textArea");
+        const countdownElement = document.getElementById("countdown");
+        let mockReplyTimeout;
+        let countdown;
+        let flag_reply_from_server = false;
+        const responses = [
+"Hello there!",
+"How can I help you?",
+"Nice to meet you!",
+"What's on your mind?",
+"Feel free to ask anything.",
+"If you were a vegetable, you'd be a 'cute-cumber.'",
+"I'm not lazy; I'm on energy-saving mode.",
+"Why don't scientists trust atoms? Because they make up everything!",
+"If laughter is the best medicine, your face must be curing the world.",
+"I'm not arguing; I'm just explaining why I'm right.",
+"I'm not saying I'm Wonder Woman; I'm just saying no one has ever seen me and Wonder Woman in the same room together.",
+"I'm not a baker, but I can make your day a little sweeter.",
+"I told my wife she was drawing her eyebrows too high. She looked surprised.",
+"I'm writing a book on anti-gravity. It's impossible to put down.",
+"Why did the scarecrow win an award? Because he was outstanding in his field!",
+"I'm not shy; I'm just plotting your demise in my head.",
+"Why don't skeletons fight each other? They don't have the guts.",
+"I told my computer I needed a break, and now it won't stop sending me vacation ads.",
+"I used to play piano by ear, but now I use my hands and fingers.",
+"I'm reading a book on anti-gravity. It's impossible to understand.",
+"I'm not clumsy; the floor just hates me, the table and chairs are bullies, and the walls get in my way.",
+"Why did the coffee file a police report? It got mugged.",
+"I told my wife she should embrace her mistakes. She gave me a hug.",
+"I told my wife she should embrace her mistakes. She gave me a hug.",
+"Why don't scientists trust atoms? Because they make up everything!",
+"I used to be a baker because I kneaded dough.",
+"I told my wife she should embrace her mistakes. She gave me a hug.",
+"I told my wife she was drawing her eyebrows too high. She looked surprised.",
+"Why don't scientists trust atoms? Because they make up everything!",
+"Why don't skeletons fight each other? They don't have the guts.",
+"What's the most absurd talent you wish you had?",
+  "If you were a superhero, what would your superpower be, and what would your superhero name be?",
+  "What's the funniest joke you've ever heard?",
+  "If you could switch lives with a cartoon character, who would it be?",
+  "If you were stranded on a deserted island and could only bring three things, what would they be?",
+  "What's the strangest dream you've ever had?",
+  "If you could have any animal as a pet, mythical or not, what would it be?",
+  "If you could have dinner with any historical figure, living or dead, who would it be and why?",
+  "If you were a flavor of ice cream, what would you be called?",
+  "If you could be a professional at any random activity, what would it be?",
+  "What's the most ridiculous fact you know?",
+                    ];
+
+        // text colors 
+        let text_color = "#98FB98";
+        const text_colors = [ "#98FB98" , '#bfefff'];
+        let text_colors_ix = 1; 
+        const toggleTextColor = () =>{
+            text_colors_ix = 1- text_colors_ix
+            text_color = text_colors[text_colors_ix]
+        }
+
+
+        // wrtie text mock             
+        const _writeMockText = (target) =>{
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            toggleTextColor();
+            target.style.color = text_color;
+            target.value = randomResponse;
+            flag_reply_from_server = true;
+        }
+
+        //bttuon state:peep
+        let mock_interval;
+        const onButtonPeep = () =>{
+            textarea.disabled= true;
+            _writeMockText(textarea);
+            mock_interval= setInterval(()=> _writeMockText(textarea),3000);
+
+        }
+
+        //bttuon state:start
+        const onButtonStart = () =>{
+            clearInterval(mock_interval);
+            _writeMockText(textarea);
+            textarea.disabled= false;
+        }
+
+        
+
+        // text area
+        textarea.disabled= true;
+        textarea.addEventListener("keydown", function (event) {
+           
+            if (flag_reply_from_server) {
+                textarea.style.color = "#bfefff"
+                event.target.value = ''
+                flag_reply_from_server = false;
+            }
+            
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevents a new line from being added
+                event.target.value = ''
+                setTimeout( ()=> _writeMockText(textarea), 500);
+                toggleTextColor()
+            }
+        });
+        
+
+        // button 
+        const btn = document.getElementById('peep')
+        let values_toggle_ix = 0;
+        const peep_values = [ 'start', 'peep']
+      
+        btn.addEventListener("click" , (event)=>{
+            const target =  event.target;
+            if (target.textContent == 'start'){
+                onButtonStart();
+            }else{
+                onButtonPeep();
+            }
+            values_toggle_ix = 1- values_toggle_ix;
+            target.textContent = peep_values[values_toggle_ix];
+            textarea.focus();
+        })
+
+
+        //countdown 
+        function startCountdown() {
+            let minutes = 3;
+            let seconds = 0;
+
+            countdown = setInterval( () => {
+                seconds--;
+
+                if (seconds < 0) {
+                    minutes--;
+                    seconds = 59;
+                }
+
+                const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                countdownElement.textContent = formattedTime;
+
+                if (minutes === 0 && seconds === 0) {
+                    textarea.style.color = "#FFFF33"
+                    textarea.value = " --  THE END ---"
+                    clearInterval(countdown);
+                    textarea.disabled= true;
+                }
+            }, 200);
+        }
+
+        startCountdown(); // Start the countdown when the page loads
+    </script>
+</body>
+
+</html>
